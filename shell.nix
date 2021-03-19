@@ -1,7 +1,13 @@
 # This is taken from
 # https://gist.github.com/cdepillabout/f7dbe65b73e1b5e70b7baa473dafddb3
 
-{ cudaSupport ? true }:
+{ cudaSupport ? true
+, # The version of the nvidia drivers you need to match your system drivers.
+  # These can be found by doing `cat /proc/driver/nvidia/version`.
+  nvidiaVersion ? "460.39"
+, # sha256 hash for the nvidia driver version you are using.
+  nvidiaSha256Hash ? "0zx3v4xas9z18yv1z3irp626h8kvcg8aw344sqpacfh1g106dw0b"
+}:
 
 let
   nixpkgs-src = builtins.fetchTarball {
@@ -16,6 +22,20 @@ let
       allowUnfree = cudaSupport;
     };
   };
+
+  # We need to override the version of the Nvidia drivers we are using to match
+  # the version that is available on our host system.
+  myNvidia_x11 = pkgs.linuxPackages.nvidia_x11.overrideAttrs (oldAttrs: rec {
+    name = "nvidia-${nvidiaVersion}";
+    src =
+      let
+        url = "https://download.nvidia.com/XFree86/Linux-x86_64/${nvidiaVersion}/NVIDIA-Linux-x86_64-${nvidiaVersion}.run";
+      in
+        pkgs.fetchurl {
+          inherit url;
+          sha256 = nvidiaSha256Hash;
+        };
+  });
 
   # This is the Python version that will be used.
   myPython = pkgs.python39;
@@ -40,7 +60,7 @@ let
     openssl
     stdenv.cc.cc
   ] ++ lib.optionals cudaSupport [
-    linuxPackages.nvidia_x11
+    myNvidia_x11
   ];
 
 
@@ -60,7 +80,9 @@ let
       pkgs.git
       pkgs.openssh
       pkgs.rsync
-    ];
+    ] ++ pkgs.lib.optionals cudaSupport [
+      myNvidia_x11.bin
+    ] ;
 
     shellHook = ''
       # Allow the use of wheels.
