@@ -2,7 +2,7 @@
 # https://gist.github.com/cdepillabout/f7dbe65b73e1b5e70b7baa473dafddb3
 
 { cudaSupport ? true
-, # The version of the nvidia drivers you need to match your system drivers.
+, # The version of the nvidia drivers.  This must match your system drivers.
   # These can be found by doing `cat /proc/driver/nvidia/version`.
   nvidiaVersion ? "460.39"
 , # sha256 hash for the nvidia driver version you are using.
@@ -27,14 +27,10 @@ let
   # the version that is available on our host system.
   myNvidia_x11 = pkgs.linuxPackages.nvidia_x11.overrideAttrs (oldAttrs: rec {
     name = "nvidia-${nvidiaVersion}";
-    src =
-      let
-        url = "https://download.nvidia.com/XFree86/Linux-x86_64/${nvidiaVersion}/NVIDIA-Linux-x86_64-${nvidiaVersion}.run";
-      in
-        pkgs.fetchurl {
-          inherit url;
-          sha256 = nvidiaSha256Hash;
-        };
+    src = pkgs.fetchurl {
+      url = "https://download.nvidia.com/XFree86/Linux-x86_64/${nvidiaVersion}/NVIDIA-Linux-x86_64-${nvidiaVersion}.run";
+      sha256 = nvidiaSha256Hash;
+    };
   });
 
   # This is the Python version that will be used.
