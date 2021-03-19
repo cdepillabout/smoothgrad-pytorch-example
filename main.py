@@ -83,12 +83,13 @@ def get_optim(net):
     return criterion, optimizer
 
 
-def train(trainloader, testloader, optimizer, net, criterion, epochs=2, batch_size=4, loss_iters=2000):
+def train(trainloader, testloader, optimizer, net, criterion, device, epochs=2, batch_size=4, loss_iters=2000):
     for epoch in range(epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = data
+            inputs = data[0].to(device)
+            labels = data[1].to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -162,10 +163,12 @@ def test(testloader, net, classes):
 def main():
     epochs = 8
     batch_size = 8
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("device: %s" % device)
     trainloader, testloader, classes = get_data_loaders(batch_size=batch_size)
-    net = Net()
+    net = Net().to(device)
     criterion, optimizer = get_optim(net)
-    train(trainloader, testloader, optimizer, net, criterion, epochs=epochs, batch_size=batch_size, loss_iters=1000)
+    train(trainloader, testloader, optimizer, net, criterion, device, epochs=epochs, batch_size=batch_size, loss_iters=1000)
     # save_model(net)
     test(testloader, net, classes)
 

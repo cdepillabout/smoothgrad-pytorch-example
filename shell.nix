@@ -1,6 +1,8 @@
 # This is taken from
 # https://gist.github.com/cdepillabout/f7dbe65b73e1b5e70b7baa473dafddb3
 
+{ cudaSupport ? true }:
+
 let
   nixpkgs-src = builtins.fetchTarball {
     # master of 2021-03-17.
@@ -33,13 +35,16 @@ let
     yapf
   ]);
 
-  lib-path = with pkgs; lib.makeLibraryPath [
+  raw-lib-path = with pkgs; [
     libffi
     openssl
     stdenv.cc.cc
-    # If you want to use CUDA, you should uncomment this line.
-    # linuxPackages.nvidia_x11
+  ] ++ lib.optional cudaSupport [
+    linuxPackages.nvidia_x11
   ];
+
+
+  lib-path = lib.makeLibraryPath raw-lib-path;
 
   shell = pkgs.mkShell {
     buildInputs = [
