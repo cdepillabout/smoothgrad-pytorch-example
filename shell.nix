@@ -12,8 +12,8 @@ let
 
   pkgs = import nixpkgs-src {
     config = {
-      # allowUnfree may be necessary for some packages, but in general you should not need it.
-      allowUnfree = false;
+      # We want to allowUnfree if CUDA is enabled.
+      allowUnfree = cudaSupport;
     };
   };
 
@@ -39,12 +39,12 @@ let
     libffi
     openssl
     stdenv.cc.cc
-  ] ++ lib.optional cudaSupport [
+  ] ++ lib.optionals cudaSupport [
     linuxPackages.nvidia_x11
   ];
 
 
-  lib-path = lib.makeLibraryPath raw-lib-path;
+  lib-path = pkgs.lib.makeLibraryPath raw-lib-path;
 
   shell = pkgs.mkShell {
     buildInputs = [
