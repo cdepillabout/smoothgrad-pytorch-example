@@ -30,6 +30,7 @@ let
     setuptools
     virtualenvwrapper
     wheel
+    yapf
   ]);
 
   lib-path = with pkgs; lib.makeLibraryPath [
