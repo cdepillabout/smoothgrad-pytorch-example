@@ -7,6 +7,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 
+
 def get_data_loaders():
 
     transform = transforms.Compose([
@@ -37,15 +38,15 @@ def get_data_loaders():
 
     return trainloader, testloader, classes
 
+
 def show_img():
     trainloader, _, classes = get_data_loaders()
 
     def imshow(img):
-        img = img / 2 + 0.5     # unnormalize
+        img = img / 2 + 0.5  # unnormalize
         npimg = img.numpy()
         plt.imshow(np.transpose(npimg, (1, 2, 0)))
         plt.show()
-
 
     # get some random training images
     dataiter = iter(trainloader)
@@ -55,6 +56,7 @@ def show_img():
     imshow(torchvision.utils.make_grid(images))
     # print labels
     print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -75,10 +77,12 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
+
 def get_optim():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     return criterion, optimizer
+
 
 def train(trainloader, optimizer, net, criterion):
     for epoch in range(2):  # loop over the dataset multiple times
@@ -98,8 +102,8 @@ def train(trainloader, optimizer, net, criterion):
 
             # print statistics
             running_loss += loss.item()
-            if i % 2000 == 1999:    # print every 2000 mini-batches
+            if i % 2000 == 1999:  # print every 2000 mini-batches
                 print('[%d, %5d] loss: %.3f' %
-                        (epoch + 1, i + 1, running_loss / 2000))
+                      (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
     print('Finished Training')
