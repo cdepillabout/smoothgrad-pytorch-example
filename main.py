@@ -83,7 +83,7 @@ def get_optim(net):
     return criterion, optimizer
 
 
-def train(trainloader, optimizer, net, criterion, epochs=2, batch_size=4, loss_iters=2000):
+def train(trainloader, testloader, optimizer, net, criterion, epochs=2, batch_size=4, loss_iters=2000):
     for epoch in range(epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
@@ -105,11 +105,27 @@ def train(trainloader, optimizer, net, criterion, epochs=2, batch_size=4, loss_i
                 print('[%d, %5d] loss: %.3f' %
                       (epoch + 1, i + 1, running_loss / loss_iters))
                 running_loss = 0.0
+
+        print('After epoch %d, ' % (epoch + 1), end='')
+        validation_accuracy(net, testloader)
     print('Finished Training')
 
 def save_model(net):
     PATH = './cifar_net.pth'
     torch.save(net.state_dict(), PATH)
+
+def validation_accuracy(net, testloader):
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            outputs = net(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    print('accuracy of the network on the 10000 test images: %d %%' % (
+        100 * correct / total))
 
 def test(testloader, net, classes):
     dataiter = iter(testloader)
@@ -124,18 +140,6 @@ def test(testloader, net, classes):
 
     print('Predicted: ', ' '.join('%5s' % classes[predicted[j]]
         for j in range(4)))
-
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data
-            outputs = net(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-        100 * correct / total))
 
     class_correct = list(0. for i in range(10))
     class_total = list(0. for i in range(10))
@@ -156,10 +160,12 @@ def test(testloader, net, classes):
 
 
 def main():
-    trainloader, testloader, classes = get_data_loaders(batch_size=16)
+    epochs = 8
+    batch_size = 8
+    trainloader, testloader, classes = get_data_loaders(batch_size=batch_size)
     net = Net()
     criterion, optimizer = get_optim(net)
-    train(trainloader, optimizer, net, criterion, epochs=2, batch_size=4, loss_iters=1000)
+    train(trainloader, testloader, optimizer, net, criterion, epochs=epochs, batch_size=batch_size, loss_iters=1000)
     # save_model(net)
     test(testloader, net, classes)
 
